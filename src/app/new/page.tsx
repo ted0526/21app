@@ -1,7 +1,9 @@
+// src/app/new/page.tsx
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';   // your browser client
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -17,23 +19,38 @@ export default function NewEventPage() {
     setLoading(true);
     setError('');
 
+    // 1) Grab session & user ID from the client‐side Supabase
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.user?.id) {
+      setError('Not authenticated. Please log in first.');
+      setLoading(false);
+      return;
+    }
+
+    // 2) Send everything, including the user ID, in the body
     const res = await fetch('/api/create-event', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        userId:       session.user.id,             // ← pass the user
         title,
         venmoUsername,
-        drinkAmount: parseFloat(drinkAmount),
+        drinkAmount:  parseFloat(drinkAmount),
         buttonText,
       }),
     });
 
-    const data = await res.json();
-    if (data.slug) {
-      router.push(`/e/${data.slug}`);
+    const payload = await res.json();
+    if (res.ok && payload.slug) {
+      router.push(`/e/${payload.slug}`);
     } else {
-      setError(data.error?.message || 'Something went wrong.');
+      setError(payload.error?.message || 'Something went wrong.');
     }
+
     setLoading(false);
   };
 

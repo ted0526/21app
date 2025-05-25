@@ -65,7 +65,7 @@ export default function HomePage() {
           Logout
         </button>
         <button
-          onClick={() => router.push('/create-event')}
+          onClick={() => router.push('/new')}
           className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
         >
           + New Event
