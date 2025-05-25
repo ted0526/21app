@@ -1,4 +1,3 @@
-// 3. src/app/login/page.tsx – Login/Register page
 'use client';
 
 import { useState } from 'react';
@@ -43,7 +42,7 @@ export default function LoginPage() {
         <input
           type="email"
           placeholder="Email"
-          className="w-full p-2 border border-gray-300 rounded text-gray-900"
+          className="w-full p-2 border border-gray-300 rounded text-white"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -51,7 +50,7 @@ export default function LoginPage() {
         <input
           type="password"
           placeholder="Password"
-          className="w-full p-2 border border-gray-300 rounded text-gray-900"
+          className="w-full p-2 border border-gray-300 rounded text-white"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required

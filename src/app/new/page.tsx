@@ -8,6 +8,7 @@ export default function NewEventPage() {
   const [title, setTitle] = useState('');
   const [venmoUsername, setVenmoUsername] = useState('');
   const [drinkAmount, setDrinkAmount] = useState('5');
+  const [buttonText, setButtonText] = useState('Venmo a Drink 🍻');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -23,52 +24,62 @@ export default function NewEventPage() {
         title,
         venmoUsername,
         drinkAmount: parseFloat(drinkAmount),
+        buttonText,
       }),
     });
 
     const data = await res.json();
-
     if (data.slug) {
       router.push(`/e/${data.slug}`);
     } else {
       setError(data.error?.message || 'Something went wrong.');
     }
-
     setLoading(false);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
       <form onSubmit={handleSubmit} className="max-w-md w-full space-y-4">
-        <h1 className="text-3xl font-bold text-center text-gray-900">🎉 Create Your Event</h1>
+        <h1 className="text-3xl font-bold text-center text-gray-900">
+          🎉 Create Your Event
+        </h1>
 
         {error && <p className="text-red-600">{error}</p>}
 
         <input
-          className="w-full border border-gray-300 rounded p-2 text-gray-900"
           type="text"
           placeholder="Event Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
+          className="w-full border border-gray-300 rounded p-2 text-gray-900"
         />
 
         <input
-          className="w-full border border-gray-300 rounded p-2 text-gray-900"
           type="text"
           placeholder="Venmo Username"
           value={venmoUsername}
           onChange={(e) => setVenmoUsername(e.target.value)}
           required
+          className="w-full border border-gray-300 rounded p-2 text-gray-900"
         />
 
         <input
-          className="w-full border border-gray-300 rounded p-2 text-gray-900"
           type="number"
           placeholder="Drink Amount"
           value={drinkAmount}
           onChange={(e) => setDrinkAmount(e.target.value)}
           required
+          className="w-full border border-gray-300 rounded p-2 text-gray-900"
+        />
+
+        <input
+          type="text"
+          placeholder="Button Text"
+          value={buttonText}
+          onChange={(e) => setButtonText(e.target.value)}
+          required
+          className="w-full border border-gray-300 rounded p-2 text-gray-900"
         />
 
         <button

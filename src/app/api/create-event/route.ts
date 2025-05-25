@@ -1,31 +1,36 @@
+// src/app/api/create-event/route.ts
 import { NextResponse } from 'next/server';
-import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { nanoid } from 'nanoid';
+import { supabase } from '@/lib/supabase';
+import { v4 as uuidv4 } from 'uuid';
 
-export async function POST(req: Request) {
-  const body = await req.json();
-  const { title, venmoUsername, drinkAmount } = body;
+export async function POST(request: Request) {
+  const { title, venmoUsername, drinkAmount, buttonText } = await request.json();
 
-  if (!title || !venmoUsername || !drinkAmount) {
-    return NextResponse.json({ error: { message: 'Missing fields' } }, { status: 400 });
-  }
+  // generate a unique slug however you like
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '') + '-' + uuidv4().slice(0, 8);
 
-  const slug = nanoid(8);
-  const supabase = createServerActionClient({ cookies });
-
-  const { error } = await supabase.from('events').insert([
-    {
+  const {
+    data,
+    error,
+  } = await supabase
+    .from('events')
+    .insert({
+      // user_id: ... pull from your session/auth
       title,
+      slug,
       venmo_username: venmoUsername,
       drink_amount: drinkAmount,
-      slug,
-    },
-  ]);
+      button_text: buttonText,
+    })
+    .select('slug')
+    .single();
 
-  if (error) {
+  if (error || !data) {
     return NextResponse.json({ error }, { status: 500 });
   }
 
-  return NextResponse.json({ slug });
+  return NextResponse.json({ slug: data.slug });
 }

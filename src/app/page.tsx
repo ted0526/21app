@@ -1,42 +1,45 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { supabase, type Database } from '@/lib/supabase'
+import { User } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+type EventRow = Database['public']['Tables']['events']['Row']
 
 export default function HomePage() {
-  const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [events, setEvents] = useState<any[]>([]);
+  const router = useRouter()
+  const [user, setUser] = useState<User | null>(null)
+  const [events, setEvents] = useState<EventRow[]>([])
 
   useEffect(() => {
-    const getSession = async () => {
+    const load = async () => {
       const {
         data: { session },
-      } = await supabase.auth.getSession();
+      } = await supabase.auth.getSession()
+      if (!session?.user) return
 
-      if (session?.user) {
-        setUser(session.user);
-        const { data } = await supabase.from('events').select('*').eq('user_id', session.user.id);
-        setEvents(data || []);
-      }
-    };
-    getSession();
-  }, []);
+      setUser(session.user)
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('user_id', session.user.id)
+
+      if (error) console.error(error)
+      else setEvents(data)
+    }
+    load()
+  }, [])
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-  };
+    await supabase.auth.signOut()
+    setUser(null)
+    setEvents([])
+  }
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center flex-col space-y-4 text-center">
+      <div className="min-h-screen flex items-center justify-center flex-col space-y-4 text-center px-4">
         <h1 className="text-3xl font-bold">Welcome to 21! 🎉</h1>
         <p>Login or register to start your birthday drink page.</p>
         <button
@@ -46,18 +49,29 @@ export default function HomePage() {
           Login / Register
         </button>
       </div>
-    );
+    )
   }
 
   return (
     <div className="min-h-screen p-4">
       <h1 className="text-2xl font-bold mb-4">Hey {user.email} 👋</h1>
-      <button
-        onClick={handleLogout}
-        className="mb-4 bg-gray-200 px-3 py-1 rounded text-sm"
-      >
-        Logout
-      </button>
+
+      {/* Logout + New Event buttons */}
+      <div className="mb-6 flex space-x-2">
+        <button
+          onClick={handleLogout}
+          className="bg-red-200 px-3 py-1 rounded text-sm"
+        >
+          Logout
+        </button>
+        <button
+          onClick={() => router.push('/create-event')}
+          className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+        >
+          + New Event
+        </button>
+      </div>
+
       <h2 className="text-xl font-semibold mb-2">Your Events</h2>
       <ul className="space-y-2">
         {events.map((e) => (
@@ -67,6 +81,7 @@ export default function HomePage() {
               className="text-blue-600 underline"
               href={`/e/${e.slug}`}
               target="_blank"
+              rel="noopener noreferrer"
             >
               View Event
             </a>
@@ -74,5 +89,5 @@ export default function HomePage() {
         ))}
       </ul>
     </div>
-  );
+  )
 }
