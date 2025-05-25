@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';   // your browser client
+import { supabase } from '@/lib/supabase';
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -19,24 +19,21 @@ export default function NewEventPage() {
     setLoading(true);
     setError('');
 
-    // 1) Grab session & user ID from the client‐side Supabase
     const {
       data: { session },
       error: sessionError,
     } = await supabase.auth.getSession();
-
     if (sessionError || !session?.user?.id) {
       setError('Not authenticated. Please log in first.');
       setLoading(false);
       return;
     }
 
-    // 2) Send everything, including the user ID, in the body
     const res = await fetch('/api/create-event', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userId:       session.user.id,             // ← pass the user
+        userId:       session.user.id,
         title,
         venmoUsername,
         drinkAmount:  parseFloat(drinkAmount),
@@ -55,54 +52,62 @@ export default function NewEventPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white px-4">
-      <form onSubmit={handleSubmit} className="max-w-md w-full space-y-4">
-        <h1 className="text-3xl font-bold text-center text-gray-900">
-          🎉 Create Your Event
-        </h1>
-
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}
+    >
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-md w-full space-y-4"
+      >
+        <h1 className="text-3xl font-bold text-center">🎉 Create Your Event</h1>
         {error && <p className="text-red-600">{error}</p>}
 
+        {/** Inputs all inherit bg/fg from CSS vars **/}
         <input
           type="text"
           placeholder="Event Title"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={e => setTitle(e.target.value)}
           required
-          className="w-full border border-gray-300 rounded p-2 text-gray-900"
+          className="w-full border rounded p-2 text-[var(--foreground)] bg-[var(--background)] border-[var(--foreground)]"
         />
 
         <input
           type="text"
           placeholder="Venmo Username"
           value={venmoUsername}
-          onChange={(e) => setVenmoUsername(e.target.value)}
+          onChange={e => setVenmoUsername(e.target.value)}
           required
-          className="w-full border border-gray-300 rounded p-2 text-gray-900"
+          className="w-full border rounded p-2 text-[var(--foreground)] bg-[var(--background)] border-[var(--foreground)]"
         />
 
         <input
           type="number"
           placeholder="Drink Amount"
           value={drinkAmount}
-          onChange={(e) => setDrinkAmount(e.target.value)}
+          onChange={e => setDrinkAmount(e.target.value)}
           required
-          className="w-full border border-gray-300 rounded p-2 text-gray-900"
+          className="w-full border rounded p-2 text-[var(--foreground)] bg-[var(--background)] border-[var(--foreground)]"
         />
 
         <input
           type="text"
           placeholder="Button Text"
           value={buttonText}
-          onChange={(e) => setButtonText(e.target.value)}
+          onChange={e => setButtonText(e.target.value)}
           required
-          className="w-full border border-gray-300 rounded p-2 text-gray-900"
+          className="w-full border rounded p-2 text-[var(--foreground)] bg-[var(--background)] border-[var(--foreground)]"
         />
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
+          className="w-full py-2 px-4 rounded font-semibold"
+          style={{
+            backgroundColor: 'var(--foreground)',
+            color: 'var(--background)'
+          }}
         >
           {loading ? 'Creating...' : 'Create Event'}
         </button>
