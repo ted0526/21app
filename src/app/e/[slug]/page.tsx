@@ -1,30 +1,32 @@
 // src/app/e/[slug]/page.tsx
-import { cookies } from 'next/headers';
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { notFound } from 'next/navigation';
-import ShareButton from '@/components/ShareButton';
-import type { Database } from '@/lib/supabase';
+import { cookies } from 'next/headers'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { notFound } from 'next/navigation'
+import type { Database } from '@/lib/supabase'
+import ShareButton from '@/components/ShareButton'
 
 export default async function EventPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>
 }) {
-  const supabase = createServerComponentClient<Database>({ cookies });
+  // await the params to get your slug
+  const { slug } = await params
+
+  const supabase = createServerComponentClient<Database>({ cookies })
   const { data: event, error } = await supabase
     .from('events')
     .select('*')
-    .eq('slug', params.slug)
-    .single();
+    .eq('slug', slug)
+    .single()
 
-  if (error || !event) return notFound();
+  if (error || !event) return notFound()
 
-  const venmoLink = `https://venmo.com/${event.venmo_username}` +
-    `?txn=pay&amount=${event.drink_amount}&note=Happy+Birthday+🥳`;
+  const venmoLink = `https://venmo.com/${event.venmo_username}?txn=pay&amount=${event.drink_amount}&note=🥳`
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center px-4 text-center"
+      className="min-h-screen flex flex-col items-center justify-center px-4"
       style={{
         backgroundColor: 'var(--background)',
         color: 'var(--foreground)',
@@ -34,25 +36,20 @@ export default async function EventPage({
       <p className="text-lg mb-2">
         Buy a drink for <strong>@{event.venmo_username}</strong>
       </p>
-      <p className="text-gray-500 mb-6">
-        Suggested amount: ${event.drink_amount}
-      </p>
-
+      <p className="mb-6">Suggested: ${event.drink_amount}</p>
       <a
         href={venmoLink}
         target="_blank"
         rel="noopener noreferrer"
-        className="px-6 py-3 rounded-xl text-lg shadow"
+        className="px-6 py-3 rounded-xl"
         style={{
           backgroundColor: 'var(--foreground)',
           color: 'var(--background)',
         }}
       >
-        {event.button_text ?? 'Venmo a Drink 🍻'}
+        {event.button_text || 'Venmo a Drink 🍻'}
       </a>
-
-      {/* share link below Venmo */}
       <ShareButton />
     </div>
-  );
+  )
 }
