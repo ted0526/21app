@@ -1,70 +1,80 @@
+// src/app/login/page.tsx
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useBrowserSupabase } from '@/lib/supabase-browser'
-
+import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = useBrowserSupabase();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      setError(error.message);
-    } else {
-      router.push('/');
-    }
-  };
+    setError(null);
+    setLoading(true);
 
-  const handleSignup = async () => {
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setLoading(false);
     if (error) {
       setError(error.message);
     } else {
+      // session is now in localStorage, so HomePage will see it
       router.push('/');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center">Login / Register</h1>
-        {error && <p className="text-red-600">{error}</p>}
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}
+    >
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-md space-y-4 p-6 rounded shadow-lg"
+        style={{
+          backgroundColor: 'var(--background)',
+          color: 'var(--foreground)',
+          border: '1px solid var(--foreground)',
+        }}
+      >
+        <h1 className="text-2xl font-bold text-center">Welcome Back! 🎉</h1>
+        {error && <p className="text-red-600 text-center">{error}</p>}
+
         <input
           type="email"
           placeholder="Email"
-          className="w-full p-2 border border-gray-300 rounded text-white"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={e => setEmail(e.target.value)}
           required
+          className="w-full p-2 border rounded text-[var(--foreground)] bg-[var(--background)] border-[var(--foreground)]"
         />
         <input
           type="password"
           placeholder="Password"
-          className="w-full p-2 border border-gray-300 rounded text-white"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={e => setPassword(e.target.value)}
           required
+          className="w-full p-2 border rounded text-[var(--foreground)] bg-[var(--background)] border-[var(--foreground)]"
         />
+
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white p-2 rounded"
+          disabled={loading}
+          className="w-full py-2 rounded font-semibold"
+          style={{
+            backgroundColor: 'var(--foreground)',
+            color: 'var(--background)',
+          }}
         >
-          Login
-        </button>
-        <button
-          type="button"
-          onClick={handleSignup}
-          className="w-full border border-blue-600 text-blue-600 p-2 rounded"
-        >
-          Register
+          {loading ? 'Logging in…' : 'Log In'}
         </button>
       </form>
     </div>
